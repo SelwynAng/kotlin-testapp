@@ -45,7 +45,7 @@
     - When APK file is installed on Android device, Package Manager verifies that APK has been properly signed with certificate included in APK
     - Can be self-signed or signed by 3rd party
     - **Depiction of signing process** (Source: https://boundarydevices.com/android-security-part-1-application-signatures-permissions/)
-      ![Signature Overview](/images/01_signature_overview.png)
+      ![Signature Overview](./images/01_signature_overview.png)
 
 ### Downsides of using Package Name
 - Source: https://blog.optickssecurity.com/fake-app-package-names-fraud
@@ -62,10 +62,10 @@
     - Verifier must uncompress all compressed entries &rarr; Consumes more time & memory
 1. **v2 Scheme (introduced in Android 7.0)**
     - Contents of APK are hashed & signed &rarr; Resulting APK signing block inserted into APK &rarr; During validation, APK file is treated as a blob & signature checking is done across entire file &rarr; Any modification to APK, including ZIP metadata modifications invalidates APK signature
-      ![Signing Block](/images/02_signature_v2.png)
+      ![Signing Block](./images/02_signature_v2.png)
     - V2 signature of APK is stored as an ID value pair with ID `0x7109871a`
     - Faster & can detect more classes of unauthorized modifications (Not so essential but basically V2+ makes use of merkle tree to speed up signing process via parallel hashing as compared to v1 which calculates hashes for each file entry)
-      ![Signing Block](/images/03_apk_integrity_protection.png)
+      ![Signing Block](./images/03_apk_integrity_protection.png)
 
 1. **v3 Scheme (introduced in Android 9)**
     - V3 adds information about supported SDK versions & a proof-of-rotation struct to APK signing block
