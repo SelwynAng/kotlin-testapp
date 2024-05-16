@@ -1,8 +1,6 @@
 package com.example.todolist
 
 import android.app.ActivityManager
-import android.content.Context
-import android.content.pm.ApplicationInfo
 import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
 import android.os.Build
@@ -20,7 +18,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import com.example.todolist.ui.theme.TodoListTheme
-import kotlin.math.log
 
 class MainActivity : ComponentActivity() {
     @RequiresApi(Build.VERSION_CODES.P)
@@ -42,17 +39,14 @@ class MainActivity : ComponentActivity() {
         val packageNameList = getInstalledApplications(packageManager)
         Log.d("Installed Package List", packageNameList.toString())
 
-        val activityManager = getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
-        val runningAppList = getRunningApplications(activityManager)
-        Log.d("Running Apps List", runningAppList.toString())
+//        val usageStatsManager = getSystemService(Context.USAGE_STATS_SERVICE) as UsageStatsManager
+//        val runningAppList = getRunningApplications(usageStatsManager)
+//        Log.d("Running Apps List", runningAppList.toString())
 
         for (packageName in packageNameList) {
             val signature = getSignature(packageManager, packageName)
             Log.d("Signature", (packageName + ", " + signature) ?: "Signature not found")
         }
-
-
-
     }
 }
 
@@ -105,6 +99,7 @@ fun getInstalledApplications(packageManager: PackageManager): ArrayList<String> 
 }
 
 // Function to retrieve all currently running applications in the device
+// Does not work as of now, does not fetch background applications
 fun getRunningApplications(activityManager: ActivityManager): ArrayList<String> {
     val runningAppList = ArrayList<String>()
     try {
@@ -122,3 +117,26 @@ fun getRunningApplications(activityManager: ActivityManager): ArrayList<String> 
 
     return runningAppList
 }
+
+// Function to retrieve all currently running applications in the device
+// Does not work as of now, returns empty list
+//fun getRunningApplications(usageStatsManager: UsageStatsManager): ArrayList<String> {
+//    val runningAppList = ArrayList<String>()
+//    val calendar = Calendar.getInstance()
+//    val endTime = calendar.timeInMillis
+//    Log.d("Time Now", endTime.toString())
+//    val startTime = endTime - 1000 * 60
+//    try {
+//        val usageStatsList = usageStatsManager.queryUsageStats(UsageStatsManager.INTERVAL_DAILY, startTime, endTime)
+//        Log.d("TESTTEST", usageStatsList.toString())
+//        for (usageStats in usageStatsList) {
+//            if (usageStats.lastTimeUsed < endTime && usageStats.lastTimeUsed > startTime) {
+//                runningAppList.add(usageStats.packageName)
+//            }
+//        }
+//    } catch (e: Exception) {
+//        Log.e("Error", e.message ?: "Error retrieving installed applications")
+//    }
+//
+//    return runningAppList
+//}
