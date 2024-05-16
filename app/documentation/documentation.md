@@ -117,4 +117,4 @@
 
 1. **Extract Signatures of running applications**: As of now, cannot extract due to the limitations of deprecated methods
 - `getRunningServices()`, `getRunningTasks()` are deprecated due to leakage of information (Source: https://developer.android.com/reference/android/app/ActivityManager#getRunningTasks(int))
-- Other methods like `getRunningAppProcesses()`
+- Other methods like `getRunningAppProcesses()` are only able to get current application that is open, but not all the background processes (Source: https://stackoverflow.com/questions/30619349/android-5-1-1-and-above-getrunningappprocesses-returns-my-application-packag)
