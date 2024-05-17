@@ -1,142 +1,71 @@
 package com.example.todolist
 
-import android.app.ActivityManager
-import android.content.pm.PackageInfo
-import android.content.pm.PackageManager
+import android.annotation.SuppressLint
 import android.os.Build
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
 import androidx.annotation.RequiresApi
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import com.example.todolist.PermissionsUtil.filterBadPermissions
+import com.example.todolist.PermissionsUtil.getPermissions
 import com.example.todolist.ui.theme.TodoListTheme
+import com.example.todolist.MaliciousAppPopUpUtil.showMaliciousAppPopUp
 
 class MainActivity : ComponentActivity() {
+    @SuppressLint("ShowToast")
     @RequiresApi(Build.VERSION_CODES.P)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
-        setContent {
-            TodoListTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                            name = "Signature Retriever",
-                            modifier = Modifier.padding(innerPadding)
-                    )
-                }
-            }
+        val packageManager = packageManager
+
+        // Make a static list of "bad permissions" and then filter for packages that has these bad permissions
+        // If such packages are present, show pop up window to notify user about presence of malicious apps
+        val BAD_PERMISSIONS = arrayListOf("android.permission.SEND_SMS", "android.permission.VIBRATE", "android.permission.ACCESS_NOTIFICATION_POLICY")
+        val appsWithBadPermissions = filterBadPermissions(getPermissions(packageManager), BAD_PERMISSIONS)
+        if (appsWithBadPermissions.size > 0) {
+            showMaliciousAppPopUp(this)
         }
 
-        // Retrieve all installed applications in the device and log their signatures
-        val packageNameList = getInstalledApplications(packageManager)
-        Log.d("Installed Package List", packageNameList.toString())
-
-//        val usageStatsManager = getSystemService(Context.USAGE_STATS_SERVICE) as UsageStatsManager
-//        val runningAppList = getRunningApplications(usageStatsManager)
-//        Log.d("Running Apps List", runningAppList.toString())
-
-        for (packageName in packageNameList) {
-            val signature = getSignature(packageManager, packageName)
-            Log.d("Signature", (packageName + ", " + signature) ?: "Signature not found")
+        setContent {
+            TodoListTheme {
+                // Scaffold removed for simplicity in this example
+                LazyColumn(modifier = Modifier.fillMaxSize()) {
+                    items(appsWithBadPermissions) { packageName ->
+                        AppListItem(packageName)
+                    }
+                }
+            }
         }
     }
 }
 
 @Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-            text = "Hello $name!",
-            modifier = modifier
-    )
+fun AppListItem(packageName: String) {
+    Surface(modifier = Modifier.fillMaxWidth().padding(8.dp)) {
+        Text(
+            text = packageName,
+            modifier = Modifier.clickable {
+                // Handle click on app item (optional)
+                // You could show more details about the app or its permissions
+            },
+            style = MaterialTheme.typography.bodyLarge
+        )
+    }
 }
 
 @Preview(showBackground = true)
 @Composable
-fun GreetingPreview() {
+fun AppListItemPreview() {
     TodoListTheme {
-        Greeting("Signature Retriever")
+        AppListItem("com.example.app")
     }
 }
-
-// Function to retrieve the signature of an app
-@RequiresApi(Build.VERSION_CODES.P)
-fun getSignature(packageManager: PackageManager, packageName: String): String? {
-    try {
-        val packageInfo: PackageInfo = packageManager.getPackageInfo(packageName, PackageManager.GET_SIGNING_CERTIFICATES)
-        val signatures = packageInfo.signingInfo.signingCertificateHistory
-        return signatures.toString()
-    } catch (e: Exception) {
-        Log.e("Error", e.message ?: "Error retrieving signature")
-    }
-    return null
-}
-
-// Function to retrieve all installed applications in the device
-fun getInstalledApplications(packageManager: PackageManager): ArrayList<String> {
-    val packageNameList = ArrayList<String>()
-    try {
-        val pm : PackageManager = packageManager
-        val packages = pm.getInstalledPackages(PackageManager.GET_META_DATA)
-        val packageNames = packages.map { packageInfo -> packageInfo.packageName }
-
-        packageNames.forEach {packageName ->
-            packageNameList.add(packageName.toString())
-        }
-
-    } catch (e: Exception) {
-        Log.e("Error", e.message ?: "Error retrieving installed applications")
-    }
-
-    return packageNameList
-}
-
-// Function to retrieve all currently running applications in the device
-// Does not work as of now, does not fetch background applications
-fun getRunningApplications(activityManager: ActivityManager): ArrayList<String> {
-    val runningAppList = ArrayList<String>()
-    try {
-        val runningProcesses = activityManager.runningAppProcesses
-        if (runningProcesses != null) {
-            for (processInfo in runningProcesses) {
-                // Add the package name of each running process to the list
-                runningAppList.add(processInfo.processName)
-            }
-        }
-
-    } catch (e: Exception) {
-        Log.e("Error", e.message ?: "Error retrieving installed applications")
-    }
-
-    return runningAppList
-}
-
-// Function to retrieve all currently running applications in the device
-// Does not work as of now, returns empty list
-//fun getRunningApplications(usageStatsManager: UsageStatsManager): ArrayList<String> {
-//    val runningAppList = ArrayList<String>()
-//    val calendar = Calendar.getInstance()
-//    val endTime = calendar.timeInMillis
-//    Log.d("Time Now", endTime.toString())
-//    val startTime = endTime - 1000 * 60
-//    try {
-//        val usageStatsList = usageStatsManager.queryUsageStats(UsageStatsManager.INTERVAL_DAILY, startTime, endTime)
-//        Log.d("TESTTEST", usageStatsList.toString())
-//        for (usageStats in usageStatsList) {
-//            if (usageStats.lastTimeUsed < endTime && usageStats.lastTimeUsed > startTime) {
-//                runningAppList.add(usageStats.packageName)
-//            }
-//        }
-//    } catch (e: Exception) {
-//        Log.e("Error", e.message ?: "Error retrieving installed applications")
-//    }
-//
-//    return runningAppList
-//}
