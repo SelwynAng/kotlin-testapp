@@ -1,21 +1,26 @@
 package com.example.todolist
 
 import android.content.pm.PackageManager
+import com.example.todolist.ApplicationsUtil.getNonSystemInstalledApplications
 
 object PermissionsUtil {
 
-    // Gets a list of all permissions of all packages installed on device
-    fun getPermissions(packageManager: PackageManager) : HashMap<String, MutableList<String>> {
+    // Gets a list of all permissions of all non-system packages installed on device
+    fun getNonSystemPackagesPermissions(packageManager: PackageManager) : HashMap<String, MutableList<String>> {
+        val nonSystemInstalledApps = getNonSystemInstalledApplications(packageManager)
         val permissionsMap = HashMap<String, MutableList<String>>()
         val packagePermissions = packageManager.getInstalledPackages(PackageManager.GET_PERMISSIONS)
         for (pi in packagePermissions) {
             val piStr = pi.packageName.toString()
-            permissionsMap[piStr] = mutableListOf()
-            if (pi.requestedPermissions == null) {
-                continue
-            } else {
-                for (perm in pi.requestedPermissions) {
-                    permissionsMap[piStr]?.add(perm.toString())
+            // Checks if the package name string is in the list of non-system installed pacakages first
+            if (piStr in nonSystemInstalledApps) {
+                permissionsMap[piStr] = mutableListOf()
+                if (pi.requestedPermissions == null) {
+                    continue
+                } else {
+                    for (perm in pi.requestedPermissions) {
+                        permissionsMap[piStr]?.add(perm.toString())
+                    }
                 }
             }
         }
